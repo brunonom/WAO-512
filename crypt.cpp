@@ -40,6 +40,14 @@ char int_to_hex(int i){
 	}
 }
 
+int hex_to_int(char c){
+	if(c<='9'){
+		return c-'0';
+	}else{
+		return c-'a'+10;
+	}
+}
+
 string bin_to_hex(string bits){
 	string hex = "";
 	for(int i=0; i<256; i+=4){
@@ -201,15 +209,45 @@ void rev_permutation(char* block){
 	// printf("%s\n", block);
 }
 
+void caesar(char* block){
+	for(int i=0; i<64; i++){
+		block[i] += 22;
+	}
+}
+
+void rev_caesar(char* block){
+	for(int i=0; i<64; i++){
+		block[i] -= 22;
+	}
+}
+
 string expand(string key, int round){
-	string e = "----------------------------------------------------------------";
+	string exp = "----------------------------------------------------------------";
+	string bytes = "----";
+	string copy = "----";
+	
 	for(int i=0; i<4; i++){
-		e[i*16] = key[round*4 + i];
-		for(int j=1; j<16; j++){
-			e[i*16+j] = int_to_hex(((key[round*4 + i] + i + j)*mult[j])%16);
+		// bytes[i] = key[round*4 + i];
+		copy[i] = key[round*4 + i];
+	}
+
+	for(int i=0; i<4; i++){
+		bytes[i] = copy[(i+1)%4];
+	}
+
+	for(int i=0; i<4; i++){
+		for(int j=0; j<16; j++){
+			exp[i+4*j] = bytes[i];
 		}
 	}
-	return e;
+	
+	for(int i=0; i<64; i++){
+		exp[i] = int_to_hex(hex_to_int(exp[i]) ^ hex_to_int(key[i]));
+	}
+
+	// printf("%s\n", exp.c_str());
+	
+	return exp;
 }
 
 void combine_key(char* block, string key, int round){
@@ -226,9 +264,11 @@ void encrypt(char* block, string key){
 		substitution(block);
 		permutation(block);
 	}
+	caesar(block);
 }
 
 void decrypt(char* block, string key){
+	rev_caesar(block);
 	for(int i=0; i<16; i++){
 		rev_permutation(block);
 		rev_substitution(block);
