@@ -10,17 +10,22 @@ void print_help(){
 
 fstream file;
 
-int subs[128] = {43, 111, 92, 23, 10, 121, 40, 116, 77, 107, 38, 14, 98, 89, 3, 78,
-				12, 20, 35, 16, 8, 106, 60, 117, 110, 5, 18, 13, 33, 93, 45, 62,
-				112, 61, 63, 41, 85, 114, 100, 123, 9, 126, 57, 115, 25, 34, 51, 27,
-				81, 104, 88, 1, 56, 95, 75, 15, 55, 66, 113, 82, 4, 76, 105, 48,
-				50, 79, 90, 65, 11, 26, 54, 6, 7, 86, 68, 59, 21, 120, 49, 125,
-				36, 58, 108, 119, 99, 102, 74, 28, 17, 0, 118, 101, 84, 47, 72, 37,
-				94, 69, 39, 30, 53, 24, 64, 97, 122, 19, 29, 80, 124, 52, 91, 73,
-				2, 42, 127, 71, 67, 44, 96, 46, 87, 32, 103, 31, 109, 22, 83, 70};
-
-int mult[16] = {1, 2, 2, 3, 3, 1, 3, 2, 1, 3, 1, 1, 1, 1, 3, 1};
-// int mult[16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+int subs[256] = {89, 33, 167, 73, 129, 148, 19, 131, 140, 30, 235, 66, 94, 112, 242, 172, 
+				70, 104, 188, 93, 24, 187, 145, 63, 81, 199, 38, 113, 134, 192, 162, 51, 
+				205, 22, 194, 60, 186, 96, 142, 208, 72, 123, 75, 161, 77, 7, 114, 191, 
+				2, 201, 37, 88, 249, 168, 6, 79, 109, 206, 12, 14, 108, 209, 244, 5, 
+				100, 76, 212, 211, 228, 8, 126, 179, 184, 65, 56, 23, 177, 122, 139, 222, 
+				111, 45, 135, 225, 61, 207, 216, 178, 101, 97, 50, 226, 165, 255, 3, 83, 
+				224, 32, 90, 68, 124, 117, 210, 120, 39, 220, 125, 138, 173, 52, 229, 31, 
+				233, 57, 103, 163, 203, 236, 221, 28, 193, 35, 10, 147, 170, 169, 245, 44, 
+				86, 218, 133, 132, 18, 153, 253, 17, 15, 48, 49, 189, 116, 237, 91, 34, 
+				171, 85, 160, 20, 84, 92, 144, 1, 154, 252, 80, 164, 127, 36, 231, 42, 
+				151, 251, 11, 54, 106, 215, 223, 157, 174, 175, 16, 29, 152, 239, 204, 234, 
+				87, 190, 198, 64, 110, 98, 200, 195, 107, 115, 40, 197, 247, 46, 43, 214, 
+				180, 181, 27, 254, 149, 240, 227, 202, 41, 82, 166, 47, 243, 136, 102, 213, 
+				0, 62, 121, 26, 232, 156, 230, 53, 69, 248, 182, 250, 158, 78, 128, 238, 
+				4, 219, 183, 58, 74, 21, 141, 185, 146, 196, 130, 13, 119, 176, 105, 67, 
+				143, 155, 99, 241, 25, 59, 159, 71, 95, 150, 118, 55, 9, 246, 217, 137};
 	
 map<int, int> subs_table;
 map<int, int> rev_subs_table;
@@ -50,16 +55,27 @@ int hex_to_int(char c){
 
 string bin_to_hex(string bits){
 	string hex = "";
-	for(int i=0; i<256; i+=4){
+	for(int i=0; i<512; i+=4){
 		int r = (bits[i]-'0')*8 + (bits[i+1]-'0')*4 + (bits[i+2]-'0')*2 + (bits[i+3]-'0');
 		hex += int_to_hex(r);
 	}
 	return hex;
 }
 
+int byte_to_int(char c){
+	int r = 0;
+	int m = 1;
+	for(int i=0; i<8; i++){
+		r += (c & 0b00000001)*m;
+		c >>= 1;
+		m *= 2;
+	}
+	return r;
+}
+
 string generate_key(){
 	string key = "";
-	for(int i=0; i<256; i++){
+	for(int i=0; i<512; i++){
 		key += (rand()%2)? "0" : "1";
 	}
 	return bin_to_hex(key);
@@ -67,13 +83,13 @@ string generate_key(){
 
 void substitution(char* block){
 	for(int i=0; i<64; i++){
-		block[i] = subs_table[block[i]];
+		block[i] = subs_table[byte_to_int(block[i])];
 	}
 }
 
 void rev_substitution(char* block){
 	for(int i=0; i<64; i++){
-		block[i] = rev_subs_table[block[i]];
+		block[i] = rev_subs_table[byte_to_int(block[i])];
 	}
 }
 
@@ -88,10 +104,6 @@ void copy_cube(char(*a)[4][4], char(*b)[4][4]){
 }
 
 void permutation(char* block){
-	// block = "abcdefghijklmnopABCDEFGHIJKLMNOP.,;:!?{}[]()@$&*qrstuvwxQRSTUVWX";
-	//abcdefghijklmnopABCDEFGHIJKLMNOP.,;:!?{}[]()@$&*qrstuvwxQRSTUVWX
-	//aG[WfL$tkM;upB}RA{QoF)VdK@seP,xj.wiO?TnD(UcE*rhJqgI&vlN:SmC!XbH]
-	// printf("%s\n", block);
 	int count = 0;
 	char mat[4][4][4], copy[4][4][4];
 	
@@ -145,14 +157,9 @@ void permutation(char* block){
 			}
 		}
 	}
-	// printf("%s\n", block);
 }
 
 void rev_permutation(char* block){
-	// block = "abcdefghijklmnopABCDEFGHIJKLMNOP.,;:!?{}[]()@$&*qrstuvwxQRSTUVWX";
-	//abcdefghijklmnopABCDEFGHIJKLMNOP.,;:!?{}[]()@$&*qrstuvwxQRSTUVWX
-	//aG[WfL$tkM;upB}RA{QoF)VdK@seP,xj.wiO?TnD(UcE*rhJqgI&vlN:SmC!XbH]
-	// printf("%s\n", block);
 	int count = 0;
 	char mat[4][4][4], copy[4][4][4];
 	
@@ -206,7 +213,6 @@ void rev_permutation(char* block){
 			}
 		}
 	}
-	// printf("%s\n", block);
 }
 
 void caesar(char* block){
@@ -222,39 +228,35 @@ void rev_caesar(char* block){
 }
 
 string expand(string key, int round){
-	string exp = "----------------------------------------------------------------";
-	string bytes = "----";
-	string copy = "----";
+	string exp(128, '-');
+	string bytes(8, '-');
+	string copy(8, '-');
 	
-	for(int i=0; i<4; i++){
-		// bytes[i] = key[round*4 + i];
-		copy[i] = key[round*4 + i];
+	for(int i=0; i<8; i++){
+		copy[i] = key[round*8 + i];
 	}
 
-	for(int i=0; i<4; i++){
-		bytes[i] = copy[(i+1)%4];
+	for(int i=0; i<8; i++){
+		bytes[i] = copy[(i+1)%8];
 	}
 
-	for(int i=0; i<4; i++){
+	for(int i=0; i<8; i++){
 		for(int j=0; j<16; j++){
-			exp[i+4*j] = bytes[i];
+			exp[i+8*j] = bytes[i];
 		}
 	}
 	
-	for(int i=0; i<64; i++){
+	for(int i=0; i<128; i++){
 		exp[i] = int_to_hex(hex_to_int(exp[i]) ^ hex_to_int(key[i]));
 	}
-
-	// printf("%s\n", exp.c_str());
 	
 	return exp;
 }
 
 void combine_key(char* block, string key, int round){
-	string temp = expand(key, round);
-	string expanded = temp;
+	string expanded = expand(key, round);
 	for(int i=0; i<64; i++){
-		block[i] ^= expanded[i];
+		block[i] ^= (hex_to_int(expanded[i*2]) << 4) | hex_to_int(expanded[i*2+1]);
 	}
 }
 
@@ -278,13 +280,13 @@ void decrypt(char* block, string key){
 
 int main(int argc, char** argv){
 	
-	for(int i=0; i<128; i++){
+	for(int i=0; i<256; i++){
 		subs_table[i] = subs[i];
 		rev_subs_table[subs[i]] = i;
 	}
 
-	// checks if substitution is asymmetric and irreflexive
-		// for(int i=0; i<128; i++){
+	// checks if s-box is asymmetric and irreflexive
+		// for(int i=0; i<256; i++){
 		// 	if(i == subs_table[i]){
 		// 		printf("whack af: %d\n", i);
 		// 		break;
